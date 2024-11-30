@@ -1,36 +1,32 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {
+  env,
+  pipeline,
+} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.1";
 
-interface WebhookPayload {
-  text: string;
-}
+// Create a feature extraction pipeline
+const extractor = await pipeline(
+  "feature-extraction",
+  "supabase/gte-small",
+  {
+    device: "auto",
+    quantized: true, // TODO: make it configurable
+  },
+);
 
-const model = new Supabase.ai.Session("gte-small");
+// Compute sentence embeddings
 
 Deno.serve(async (req) => {
-  try {
-    // Parse request body
-    const payload: WebhookPayload = await req.json();
-    const { text } = payload;
+  const { input } = await req.json();
 
-    if (!text) {
-      throw new Error("Missing required parameter: text");
-    }
+  const texts = [input];
+  const embeddings = await extractor(texts, {
+    // TODO: make these params configurable
+    pooling: "mean",
+    normalize: true,
+  });
 
-    // Generate embedding
-    const embedding = await model.run(text, {
-      mean_pool: true,
-      normalize: true,
-    });
-
-    // Return embedding
-    return new Response(JSON.stringify({ embedding }), {
-      status: 200,
-    });
-
-    // Handle error
-  } catch (error) {
-    return new Response(error.message, {
-      status: 500,
-    });
-  }
+  return new Response(JSON.stringify(embeddings), {
+    headers: { "Content-Type": "application/json" },
+    status: 200,
+  });
 });
