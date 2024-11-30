@@ -6,14 +6,12 @@ import {
 // Create a feature extraction pipeline
 const extractor = await pipeline(
   "feature-extraction",
-  "supabase/gte-small",
+  "Xenova/jina-embeddings-v2-base-en",
   {
     device: "auto",
     quantized: true, // TODO: make it configurable
   },
 );
-
-// Compute sentence embeddings
 
 Deno.serve(async (req) => {
   const { input } = await req.json();

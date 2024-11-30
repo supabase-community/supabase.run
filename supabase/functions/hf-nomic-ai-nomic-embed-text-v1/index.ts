@@ -6,7 +6,7 @@ import {
 // Create a feature extraction pipeline
 const extractor = await pipeline(
   "feature-extraction",
-  "supabase/gte-small",
+  "nomic-ai/nomic-embed-text-v1",
   {
     device: "auto",
     quantized: true, // TODO: make it configurable
